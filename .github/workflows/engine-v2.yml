@@ -1,0 +1,42 @@
+name: DILIYAN ENGINE V2 - macOS ARM64
+on:
+  push:
+    branches: [dev/audio-v2]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Preserve V1, the test app and existing workflows
+        run: git diff --exit-code 683d785a9f6f373a8f0db8c96956e41123022a65 HEAD -- v1 main.swift build.sh README-DE.md .github/workflows/build-macos.yml .github/workflows/engine-v1.yml backups
+      - name: Independent measurement tool on build machine only
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install ffmpeg
+          fi
+          ffmpeg -version
+      - name: Build and independently test real V2
+        shell: bash
+        run: |
+          set -o pipefail
+          bash v2/build-v2.sh 2>&1 | tee v2-build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: DILIYAN-ENGINE-V2-build-log
+          path: v2-build.log
+          if-no-files-found: warn
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DILIYAN-ENGINE-V2-arm64
+          path: v2-dist/
+          if-no-files-found: error
+          retention-days: 14

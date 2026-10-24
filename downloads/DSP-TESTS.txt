@@ -1,0 +1,28 @@
+PASS Dynamic unmasking engages on competing vocal band
+PASS No beat change before vocal activity
+PASS Unmasking releases during vocal pause
+PASS Strength zero gives exact bypass
+PASS No unnecessary ducking of non-overlapping bass
+PASS 8x limiter preserves exact frame count
+PASS 8x limiter does not reduce quiet signal
+PASS 8x roundtrip is aligned and transparent in steady passband
+PASS K-weighted LUFS sine baseline
+PASS Per-sample comparison fades avoid gain steps, including gain above unity
+PASS Streaming player advances shared position
+PASS Seek resets all comparison streams together
+PASS Pause holds exact rendered sample position
+PASS Original Level uses actual file amplitude without individual matching
+PASS Matched mode applies accurate gain above unity in audio samples
+PASS Side-only reference adjustment preserves mono input
+Technical V2 tests completed; musical quality is not certified.
+PASS Reference deficit generates bounded, different source EQ decisions
+PASS Vocal density, attack and bass proposals depend on measured features
+PASS All rejected decisions give exact stem bypass
+PASS Changing the reference reverses tonal recommendations before mastering
+PASS Actual vocal compression follows signal and respects 2 dB cap
+PASS Actual dynamic bass correction respects 1.5 dB cap
+PASS Conflict-selected frequency actually controls dynamic unmasking
+PASS Energy-strata matching works on measurable section changes
+PASS Identical sections do not invent spectral differences
+PASS Insufficient comparable sections explicitly triggers global fallback
+V3 behavioral tests passed; no professional-quality claim.

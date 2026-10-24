@@ -1,0 +1,21 @@
+Audio V3 Experimental. Ad hoc signed, NOT notarized.
+Reference-guided mix, energy strata, review decisions; preserved V2 limiter and sample-based player.
+Independent FFmpeg/libsoxr checks passed on synthetic tests. M1 listening test still required.
+Source revision: af2719332ddfa5b28dc4425094d90e4596e497bb
+ProductName:		macOS
+ProductVersion:		15.7.9
+BuildVersion:		24G830
+arm64
+Xcode 16.4
+Build version 16F6
+Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+Target: arm64-apple-macosx15.0
+Executable=/Users/runner/work/DILIYAN-BUILD-TEST/DILIYAN-BUILD-TEST/v3-build.wlGO8B/DILIYAN STEM MASTER ENGINE V3.app/Contents/MacOS/DiliyanStemMasterV3
+Identifier=local.diliyan.stemmaster.engine.v3
+Format=app bundle with Mach-O thin (arm64)
+CodeDirectory v=20400 size=3259 flags=0x2(adhoc) hashes=95+3 location=embedded
+Signature=adhoc
+Info.plist entries=10
+TeamIdentifier=not set
+Sealed Resources version=2 rules=13 files=3
+Internal requirements count=0 size=12

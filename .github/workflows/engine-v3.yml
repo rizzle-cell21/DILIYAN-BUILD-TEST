@@ -1,0 +1,45 @@
+name: DILIYAN ENGINE V3 - macOS ARM64
+on:
+  push:
+    branches: [dev/audio-v3]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Preserve V1, the test app and existing workflows
+        run: git diff --exit-code 5576a5ac8bdcacd5385f86bfe792cf0be5f27128 HEAD -- v1 v2 main.swift build.sh README-DE.md .github/workflows/build-macos.yml .github/workflows/engine-v1.yml .github/workflows/engine-v2.yml backups
+      - name: Independent measurement tool on build machine only
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install ffmpeg
+          fi
+          if [ ! -f "$(brew --prefix libsoxr)/include/soxr.h" ]; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install libsoxr
+          fi
+          ffmpeg -version
+      - name: Build and independently test real V3
+        shell: bash
+        run: |
+          set -o pipefail
+          bash v3/build-v3.sh 2>&1 | tee v3-build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: DILIYAN-ENGINE-V3-build-log
+          path: v3-build.log
+          if-no-files-found: warn
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DILIYAN-ENGINE-V3-arm64
+          path: v3-dist/
+          if-no-files-found: error
+          retention-days: 14

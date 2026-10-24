@@ -1,0 +1,50 @@
+name: DILIYAN ENGINE V1 - macOS ARM64
+
+on:
+  push:
+    branches:
+      - dev/audio-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Support browser uploads in root or v1 folder
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f v1/build-engine.sh ]; then
+            mkdir -p v1
+            for file in DSP.hpp Audio.hpp Engine.cpp Tests.cpp EngineApp.swift integration.py reference-fixture.flac build-engine.sh ENGINE-V1-DE.md; do
+              test -f "$file"
+              cp "$file" "v1/$file"
+            done
+          fi
+      - name: Build and test real audio engine
+        shell: bash
+        run: |
+          set -o pipefail
+          bash v1/build-engine.sh 2>&1 | tee engine-build.log
+      - name: Keep build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DILIYAN-ENGINE-V1-build-log
+          path: engine-build.log
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Download DMG ZIP and verification reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: DILIYAN-ENGINE-V1-arm64
+          path: engine-dist/
+          if-no-files-found: error
+          retention-days: 14

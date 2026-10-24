@@ -291,7 +291,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
       self.entries = self.masters!.files; self.choices.segmentCount = 7
       guard self.mix!.referenceMix.recommendations.count == 6, self.entries.count == 7 else { exit(1) }
       for i in 0..<7 { self.choices.selectedSegment = i; self.describe(); self.graph.display(); self.dynamicsGraph.display(); self.bandGraph.display() }
-      print("PASS V3 native UI, V3 report decoding, all comparison graphs, bundled decoder and offline AVAudioSourceNode playback"); NSApp.terminate(nil) }
+      self.urls[2] = URL(fileURLWithPath: path); self.project = root; self.choices.selectedSegment = 3; self.updateControls()
+      guard self.masterButton.isEnabled, self.export.isEnabled else { exit(1) }
+      self.decisionChanged()
+      guard !self.masterButton.isEnabled, !self.export.isEnabled else { exit(1) }
+      print("PASS V3 native UI, V3 report decoding, all comparison graphs, review/export invalidation, bundled decoder and offline AVAudioSourceNode playback"); NSApp.terminate(nil) }
      catch { fputs(error.localizedDescription + "\n", stderr); exit(1) }
     }
    }
@@ -410,9 +414,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   }
   if let result = masters, (3...5).contains(index) {
    let master = result.masters[index - 3]
-   dynamicsGraph.trace = master.limiterTrace.map { row in
-    let point = master.compressorTrace.min { abs($0[0] - row[0]) < abs($1[0] - row[0]) }
-    return [row[0], point?[1] ?? 0, row[1], 0]
+   dynamicsGraph.trace = master.limiterTrace.enumerated().map { i, row in
+    let reduction = master.compressorTrace.indices.contains(i) ? master.compressorTrace[i][1] : 0
+    return [row[0], reduction, row[1], 0]
    }; dynamicsGraph.scale = max(6, master.limiterMaxDB); dynamicsGraph.active = true
    dynamicsGraph.caption = "Master-Rendermessung: Compressor GR (blau), Limiter GR (orange) · 100-ms-Maxima · dB"
    bandGraph.values = master.eqDB

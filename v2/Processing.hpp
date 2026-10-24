@@ -52,13 +52,13 @@ inline MasterPlan2 plan2(const Metrics&m,const Metrics&r,int profile) {
     for(size_t k=0;k<p.eq.size();++k){double hz=masterFrequencies[k];int j=0;while(j<12&&hz>Spectrum::edges[j+1])++j;
         double delta=0;double weights=0;
         for(int b=std::max(0,j-1);b<=std::min(12,j+1);++b){double w=b==j?2:1;delta+=w*std::clamp(ratioDB(r.bands[b],m.bands[b]),-6.0,6.0);weights+=w;}
-        p.eq[k]=std::clamp(delta/weights*.28,-1.6,1.6);
+        p.eq[k]=m.spectralWindows>0&&r.spectralWindows>0?std::clamp(delta/weights*.28,-1.6,1.6):0;
     }
     if(profile==1){p.eq[1]=std::clamp(p.eq[1]+.6*(1-std::clamp(m.bass/.6,0.0,1.0)),-1.6,1.6);p.eq[2]=std::clamp(p.eq[2]+.25,-1.6,1.6);p.eq[6]=std::clamp(p.eq[6]-.3*std::clamp(m.air/.1,0.0,1.0),-1.6,1.6);p.attack=.025;p.release=.15;}
     if(profile==2){p.eq[0]=std::clamp(p.eq[0]-.35*std::clamp(m.bass/.5,0.0,1.0),-1.6,1.6);p.eq[4]=std::clamp(p.eq[4]+.45*(1-std::clamp(m.presence/.4,0.0,1.0)),-1.6,1.6);p.attack=.045;p.release=.10;}
     if(m.crest>r.crest+1.5 && m.crest>10){p.ratio=std::clamp(1.15+(m.crest-r.crest)*.035,1.15,1.6);if(profile==2)p.ratio=1+(p.ratio-1)*.5;}
     p.threshold=std::clamp(m.active+5,-28.0,-8.0);
-    for(int k=0;k<3;++k){int b=k==0?5:k==1?8:11;double delta=std::clamp(20*std::log10(std::max(r.sideBands[b],.01)/std::max(m.sideBands[b],.01))*.10,-.6,.6);if(m.correlation<.2)delta=std::min(0.,delta);p.sideEQ[k]=delta;}
+    for(int k=0;k<3;++k){int b=k==0?5:k==1?8:11;double delta=std::clamp(20*std::log10(std::max(r.sideBands[b],.01)/std::max(m.sideBands[b],.01))*.10,-.6,.6);if(m.correlation<.2)delta=std::min(0.,delta);p.sideEQ[k]=m.spectralWindows>0&&r.spectralWindows>0?delta:0;}
     p.reason="13 aktive FFT-Energiebaender; acht begrenzte EQ-Zonen; Kompression aus Crest-Abstand; Referenz-LUFS ohne -12-LUFS-Grenze. Keine automatische Refrain-Zuordnung.";
     return p;
 }

@@ -34,7 +34,9 @@ for name in DiliyanEngineV2 DiliyanStemMasterV2; do
 done
 codesign --force --sign - "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
-PYTHONUNBUFFERED=1 /usr/bin/python3 v2/integration.py "$APP/Contents/MacOS/DiliyanEngineV2" "$BUILD/UnmodifiedV1" "$BUILD/integration" | tee "$DIST/INTEGRATION-TESTS.txt"
+SOXR_PREFIX="$(brew --prefix libsoxr)"
+"${CXX[@]}" v2/IndependentPeak.cpp -I"$SOXR_PREFIX/include" -L"$SOXR_PREFIX/lib" -lsoxr -framework AudioToolbox -framework CoreFoundation -o "$BUILD/IndependentPeak"
+DILIYAN_SOXR_METER="$BUILD/IndependentPeak" PYTHONUNBUFFERED=1 /usr/bin/python3 v2/integration.py "$APP/Contents/MacOS/DiliyanEngineV2" "$BUILD/UnmodifiedV1" "$BUILD/integration" | tee "$DIST/INTEGRATION-TESTS.txt"
 /usr/bin/python3 - "$APP/Contents/MacOS/DiliyanStemMasterV2" "$BUILD/integration/Vocal.wav" <<'PY'
 import subprocess,sys
 subprocess.run([sys.argv[1],'--smoke-test',sys.argv[2]],check=True,timeout=60)

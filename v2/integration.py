@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Behavioral integration tests, independent FFmpeg/libsoxr checks. No dependencies beyond Python stdlib and FFmpeg on the build machine."""
 from pathlib import Path
-import argparse,array,json,math,struct,subprocess,sys,hashlib,wave,re,shutil
+import argparse,array,json,math,struct,subprocess,sys,hashlib,wave,re,shutil,os
 p=argparse.ArgumentParser();p.add_argument('engine',type=Path);p.add_argument('legacy',type=Path);p.add_argument('output',type=Path);a=p.parse_args()
 a.engine=a.engine.resolve();a.legacy=a.legacy.resolve();r=a.output;r.mkdir(parents=True,exist_ok=False)
 assert shutil.which('ffmpeg'),'Independent FFmpeg meter is required on the build machine'
@@ -34,9 +34,14 @@ def read(path):
  raise AssertionError('Missing WAV data')
 
 def independent(path):
- q=subprocess.run(['ffmpeg','-hide_banner','-nostats','-i',str(path),'-af','aresample=768000:resampler=soxr:precision=33:cutoff=0.999,astats=metadata=0:reset=0','-f','null','-'],capture_output=True,text=True,check=True)
- peaks=re.findall(r'Peak level dB:\s*(-?[\d.]+)',q.stderr);assert peaks,q.stderr
- peak=float(peaks[-1])
+ helper=os.environ.get('DILIYAN_SOXR_METER')
+ if helper:
+  peak=float(subprocess.check_output([helper,str(path)],text=True))
+ else:
+  q=subprocess.run(['ffmpeg','-hide_banner','-nostats','-i',str(path),'-af','aresample=768000:resampler=soxr:precision=33:cutoff=0.999,astats=metadata=0:reset=0','-f','null','-'],capture_output=True,text=True)
+  assert q.returncode==0,q.stderr
+  peaks=re.findall(r'Peak level dB:\s*(-?[\d.]+)',q.stderr);assert peaks,q.stderr
+  peak=float(peaks[-1])
  q=subprocess.run(['ffmpeg','-hide_banner','-nostats','-i',str(path),'-af','ebur128=peak=true','-f','null','-'],capture_output=True,text=True,check=True)
  summary=q.stderr.rsplit('Summary:',1)[-1];lufs=float(re.search(r'I:\s+(-?[\d.]+) LUFS',summary).group(1))
  return lufs,peak

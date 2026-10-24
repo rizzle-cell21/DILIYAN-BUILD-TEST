@@ -21,6 +21,9 @@ jobs:
           if ! command -v ffmpeg >/dev/null; then
             HOMEBREW_NO_AUTO_UPDATE=1 brew install ffmpeg
           fi
+          if ! brew --prefix libsoxr >/dev/null 2>&1; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install libsoxr
+          fi
           ffmpeg -version
       - name: Build and independently test real V2
         shell: bash

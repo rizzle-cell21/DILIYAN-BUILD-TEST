@@ -19,6 +19,7 @@ public:
     UnmaskStats stats;
     Unmasker(double activeVocalDB,double amount):threshold(std::max(-58.0,activeVocalDB-24)),strength(std::clamp(amount,0.0,1.0)){}
     Frame tick(Frame v,Frame beat) {
+        if(strength==0){if(n%4800==0)stats.trace.push_back({n/double(rate),{0,0,0}});++n;++stats.frames;return beat;}
         vfull=follow(vfull,energy(v));bfull=follow(bfull,energy(beat));
         double activity=std::clamp((10*std::log10(std::max(vfull,1e-30))-threshold)/8,0.0,1.0);
         bool active=false;

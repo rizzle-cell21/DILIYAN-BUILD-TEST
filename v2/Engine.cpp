@@ -67,7 +67,7 @@ void stemMix(const fs::path&vocal,const fs::path&beat,const fs::path&out,double 
  WavWriter original(out/"Original.wav"),balance(out/"Balance.wav"),glue(out/"MixGlue.wav");
  Unmasker dsp(vm.active+vgDB,strength);std::array<Frame,4096>va{},ba{},orig{},bal{},mixout{};size_t nv,nb;
  do{nv=v.read(va.data(),va.size());nb=b.read(ba.data(),ba.size());size_t n=std::max(nv,nb);
-  for(size_t i=0;i<n;++i){Frame vocalFrame=i<nv?va[i]:Frame{},beatFrame=i<nb?ba[i]:Frame{};orig[i]=vocalFrame+beatFrame;vocalFrame=vocalFrame*vg;bal[i]=vocalFrame+beatFrame;mixout[i]=vocalFrame+dsp.tick(vocalFrame,beatFrame);}
+  for(size_t i=0;i<n;++i){Frame vocalFrame=i<nv?va[i]:Frame{},beatFrame=i<nb?ba[i]:Frame{};orig[i]=vocalFrame+beatFrame;vocalFrame=vocalFrame*vg;bal[i]=vocalFrame+beatFrame;Frame processedBeat=dsp.tick(vocalFrame,beatFrame);mixout[i]=strength==0?bal[i]:vocalFrame+processedBeat;}
   original.write(orig.data(),n);balance.write(bal.data(),n);glue.write(mixout.data(),n);
  }while(nv||nb);
  original.close();balance.close();glue.close();dsp.finish();

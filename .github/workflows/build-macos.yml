@@ -1,1 +1,50 @@
-name: macOS Apple Silicon Build Test bis retention-days: 3.
+name: macOS Apple Silicon Build Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ARM64 App
+    runs-on: macos-15
+    timeout-minutes: 15
+
+    steps:
+      - name: Repository herunterladen
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Apple-Silicon-Umgebung prüfen
+        shell: bash
+        run: |
+          set -euo pipefail
+          sw_vers
+          test "$(uname -m)" = "arm64"
+          xcodebuild -version
+          xcrun swiftc --version
+
+      - name: Dateien vorbereiten
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f main.swift
+          test -f build.sh
+          mkdir -p Sources scripts
+          cp main.swift Sources/main.swift
+          cp build.sh scripts/build.sh
+
+      - name: App bauen und verpacken
+        shell: bash
+        run: bash scripts/build.sh
+
+      - name: DMG ZIP und Bericht bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: DILIYAN-Build-Test-arm64
+          path: dist/
+          if-no-files-found: error
+          retention-days: 3

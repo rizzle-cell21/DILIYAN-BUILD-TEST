@@ -17,6 +17,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - name: Verify legacy build-test files are unchanged
+        run: git diff --exit-code 5e2fd839081843937cb2c1b7cdbbeb4141787625 HEAD -- main.swift build.sh README-DE.md .github/workflows/build-macos.yml
       - name: Support browser uploads in root or v1 folder
         shell: bash
         run: |

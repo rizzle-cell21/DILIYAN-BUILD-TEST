@@ -114,6 +114,6 @@ inline LimitStats oversampledLimit(const fs::path&in,const fs::path&out,double l
     for(int i=0;i<HighRateLimiter::latency();++i)high({});
     int remainder=int(limitedCount%65536);if(remainder)down(remainder);
     hl.fill(0);hr.fill(0);for(int i=0;written<reader.frames&&i<64;++i)down(65536);
-    require(written==reader.frames,"Limiter output frame preservation");if(used)writer.write(buffer.data(),used);writer.close();return limiter.stats;
+    require(written==reader.frames,"Limiter output frame preservation");if(used)writer.write(buffer.data(),used);writer.close();if(limiter.stats.samples%38400)limiter.stats.trace.push_back({limiter.stats.samples/384000.,limiter.stats.traceMax});return limiter.stats;
 }
 }

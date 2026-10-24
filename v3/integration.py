@@ -44,6 +44,10 @@ def independent(path):
   peak=float(peaks[-1])
  q=subprocess.run(['ffmpeg','-hide_banner','-nostats','-i',str(path),'-af','ebur128=peak=true','-f','null','-'],capture_output=True,text=True,check=True)
  summary=q.stderr.rsplit('Summary:',1)[-1];lufs=float(re.search(r'I:\s+(-?[\d.]+) LUFS',summary).group(1))
+ short_values=[float(x) for x in re.findall(r'S:\s+(-?[\d.]+)',q.stderr)]
+ own=meter(path)
+ if own['seconds']>=3:
+  assert short_values and abs(max(short_values)-own['shortMax'])<.15,(max(short_values),own['shortMax'])
  return lufs,peak
 
 v,b,ref=[r/name for name in ['Vocal.wav','Beat.wav','Reference.wav']]

@@ -5,7 +5,7 @@
 using namespace diliyan;
 int main(int argc,char**argv){try{
  require(argc==2,"WAV path missing");WavReader reader(argv[1]);
- auto io=soxr_io_spec(SOXR_FLOAT64_I,SOXR_FLOAT64_I);auto quality=soxr_quality_spec(SOXR_VHQ,0);quality.precision=33;quality.passband_end=.999;
+ auto io=soxr_io_spec(SOXR_FLOAT64_I,SOXR_FLOAT64_I);auto quality=soxr_quality_spec(SOXR_VHQ,0);quality.precision=33;quality.passband_end=.995;
  soxr_error_t error=nullptr;soxr_t converter=soxr_create(rate,rate*16,2,&error,&io,&quality,nullptr);require(converter&&!error,error?error:"soxr create failed");
  struct Cleanup{soxr_t s;~Cleanup(){soxr_delete(s);}}cleanup{converter};
  static_assert(sizeof(Frame)==2*sizeof(double),"Interleaved stereo layout required");

@@ -146,10 +146,11 @@ final class Monitor {
 final class TraceView: NSView {
  var trace: [[Double]] = [] { didSet { needsDisplay = true } }
  var cursor: Double = 0 { didSet { needsDisplay = true } }
+ var active = true { didSet { needsDisplay = true } }
  override var isFlipped: Bool { true }
  override func draw(_ dirtyRect: NSRect) {
   NSColor.controlBackgroundColor.setFill(); bounds.fill()
-  let text = "Gemessene EQ-Steuerhüllkurven · 800 Hz / 2 kHz / 4 kHz · 0 bis −2,5 dB"
+  let text = active ? "Mix & Glue: EQ-Steuerhüllkurven · 800 Hz / 2 kHz / 4 kHz · 0 bis −2,5 dB" : "Mix & Glue-Rendermessung · in dieser Auswahl nicht angewendet"
   text.draw(at: NSPoint(x: 10, y: 5), withAttributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
   guard let end = trace.last?.first, end > 0 else { return }
   let colors: [NSColor] = [.systemBlue, .systemOrange, .systemGreen]
@@ -159,7 +160,7 @@ final class TraceView: NSView {
     let point = NSPoint(x: 10 + row[0] / end * (bounds.width - 20), y: 28 + row[k] / 2.5 * (bounds.height - 38))
     if began { path.line(to: point) } else { path.move(to: point); began = true }
    }
-   colors[k - 1].setStroke(); path.lineWidth = 1.5; path.stroke()
+   colors[k - 1].withAlphaComponent(active ? 1 : 0.25).setStroke(); path.lineWidth = 1.5; path.stroke()
   }
   NSColor.labelColor.withAlphaComponent(0.5).setStroke()
   let line = NSBezierPath(); let x = 10 + min(end, cursor) / end * (bounds.width - 20)
@@ -320,7 +321,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
  @objc private func startMaster() {
   guard let root = project, mix != nil, let ref = urls[2], !changedStrength, !busy else { return }
   let index = choices.selectedSegment > 2 ? 2 : max(0, choices.selectedSegment)
-  let selected = ["Original", "Balance", "MixGlue"][index == 2 && unmaskOn.state != .on ? 1 : index]
+  let selected = choices.selectedSegment > 2 ? (masters?.selectedMix ?? (unmaskOn.state == .on ? "MixGlue" : "Balance")) : ["Original", "Balance", "MixGlue"][index == 2 && unmaskOn.state != .on ? 1 : index]
   let out = root.appendingPathComponent("Master-" + UUID().uuidString)
   execute(["--master", root.path, ref.path, selected, out.path]) { [weak self] in
    guard let self = self else { return }
@@ -345,6 +346,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
  @objc private func seekAudio() { monitor.seek(seek.doubleValue) }
  private func describe() {
   guard entries.indices.contains(choices.selectedSegment) else { return }; let index = choices.selectedSegment, m = entries[index].metrics
+  graph.active = index == 2 || ((3...5).contains(index) && masters?.selectedMix == "MixGlue")
   var text = String(format: "Datei: %.2f LUFS-I · Short-term max %.2f LUFS · TP≈ %.2f dBTP · Korrelation %.3f\n", m.lufs, m.shortMax, m.truePeakEstimate, m.correlation)
   let trim = masters?.originalMonitorTrimDB ?? mix?.originalMonitorTrimDB ?? 0, target = masters?.comparisonLUFS ?? mix?.comparisonLUFS ?? -18
   text += levels.selectedSegment == 0 ? String(format: "Loudness Matched: Ziel %.2f LUFS, nur Abhören; Exporte unverändert.\n", target) : String(format: "Original Level: keine individuelle Normalisierung; gemeinsamer Monitor-Headroom %+.2f dB für alle Dateien.\n", trim)

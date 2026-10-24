@@ -11,7 +11,8 @@ int main(int argc,char**argv){try{
  static_assert(sizeof(Frame)==2*sizeof(double),"Interleaved stereo layout required");
  std::vector<Frame> input(4096),output(65536);double peak=0;
  auto process=[&](const Frame*in,size_t n){size_t consumed=0;do{size_t used=0,made=0;auto e=soxr_process(converter,in?in+consumed:nullptr,in?n-consumed:0,&used,output.data(),output.size(),&made);require(!e,e?e:"soxr processing error");
-  for(size_t i=0;i<made;++i)peak=std::max({peak,std::abs(output[i].l),std::abs(output[i].r)});consumed+=used;if(!in&&made==0)break;if(in&&used==0&&made==0)throw std::runtime_error("soxr stalled");
+  for(size_t i=0;i<made;++i){peak=std::max({peak,std::abs(output[i].l),std::abs(output[i].r)});}
+  consumed+=used;if(!in&&made==0)break;if(in&&used==0&&made==0)throw std::runtime_error("soxr stalled");
  }while(!in||consumed<n);};
  process(input.data(),input.size());size_t n;while((n=reader.read(input.data(),input.size())))process(input.data(),n);
  std::fill(input.begin(),input.end(),Frame{});process(input.data(),input.size());process(nullptr,0);
